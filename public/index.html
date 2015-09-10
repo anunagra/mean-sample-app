@@ -1,0 +1,51 @@
+<html>
+    <head>
+         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	    	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	    	<meta name="viewport" content="initial-scale=1" />
+			<meta name="description" content="MyELT is a web-based learning management system."/>
+			<meta name="author" content="Compro Technologies"/>
+			<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+         <link href="styles/bootstrap/bootstrap.css" rel="stylesheet"/>
+         <link href="styles/bootstrap/font-awesome.css" rel="stylesheet"/>
+         <link href="styles/dayplanner.css" rel="stylesheet"/>
+         <link href="http://fonts.googleapis.com/css?family=Arizonia" rel="stylesheet" type="text/css">
+    </head>
+    <body ng-app="plannerApp">
+        <div class="container" ng-controller="taskController">                
+          
+           <div class="task-pane">              
+            <form novalidate  name="form">
+                <div class="form-group" ng-class="{ hasError : form.description.$required}">
+                    <label name="email">Your New Task</label>
+                    <input type="text" name="description" ng-model="description" placeholder="Description"  required=""></input>
+                    <a class="btn btn-primary" type="submit" ng-click="addTask(description)">Add</a>                    
+                </div>                  
+            </form>
+            <p class="search-panel">
+                <label>Search </label>
+                <input type="text" ng-model="criteria" placeholder="Search Task"></input> 
+            </p>
+             <div class="task-list-page-view"> 
+                <div class="lines"><!-- --></div>
+                    <ol class="list" list-load-complete>
+                        <li ng-repeat="n in tasks['userList'] | filter:criteria track by $index"  class="clearfix">
+                            <span class="status" ng-click="markDone($index)"><input type="checkbox" /></span>
+                            <p class="pull-left description" contenteditable="true" ng-model="n">{{n}}</p>
+                            <p class="pull-right delete" ng-click="deleteTask(n)">
+                                X
+                            </p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>                
+    </body>               
+    <script src="scripts/angular/angular.js">   </script>
+    <script src="scripts/angular/angular-sanitize.js"></script>
+    <script src="scripts/angular/angular-cache.js"></script>
+    <script src="scripts/jquery/jquery.js"></script>
+    <script src="scripts/bootstrap/bootstrap.js"></script>
+
+    <script src="scripts/app.js"></script>
+</html>
