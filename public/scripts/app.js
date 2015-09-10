@@ -5,30 +5,30 @@ plannerApp.config(function (CacheFactoryProvider) {
         maxAge: 3600000,
         deleteOnExpire: 'aggressive',
         onExpire: function (key, value) {
-          var _this = this; // "this" is the cache in which the item expired
-          angular.injector(['ng']).get('$http').get(key).success(function (data) {
-            _this.put(key, data);
-          });
+            var _this = this; // "this" is the cache in which the item expired
+            angular.injector(['ng']).get('$http').get(key).success(function (data) {
+                _this.put(key, data);
+            });
         }
-  });
+    });
 });
+
 plannerApp.directive("contenteditable", ["$sce" , function( $sce ) {
   return {
-    require: "ngModel",
-    link: function(scope, element, attrs, ngModel) {
+      require: "ngModel",
+      link: function(scope, element, attrs, ngModel) {
+          function read() {
+            ngModel.$setViewValue( element.text() );
+          }
 
-      function read() {
-        ngModel.$setViewValue( element.text() );
-      }
+          ngModel.$render = function() {
+            element.html(ngModel.$viewValue || "");
+          };
 
-      ngModel.$render = function() {
-        element.html(ngModel.$viewValue || "");
-      };
-
-      element.bind("blur keyup change", function() {
-        scope.$apply(read);
-      });
-    }
+          element.bind("blur keyup change", function() {
+            scope.$apply(read);
+          });
+        }
   };
 }]);
 
@@ -37,25 +37,25 @@ plannerApp.directive("listLoadComplete" ,["$rootScope", function($rootScope) {
       restrict: 'A',
       controller: 'taskController',
       link : function (scope, element, attr) {
-        scope.$watch('tasks', function(ov , nv){
-            var ListHeight = $(".list").height();
-            scope.$emit('list-loaded', ListHeight);            
-        });
-        scope.$watch('criteria', function(ov , nv){
-            var ListHeight = $(".list").height(); 
-            scope.$emit('search-updated', ListHeight);     
-        });
-          
-       $rootScope.$on("list-updated", function(event,added){ //check $rootscope for change
-           var ListHeight = $(".list").height();
-           
-           if(added !== undefined && added){
-               ListHeight = ListHeight + 48;
-           }else if(added !== undefined &&  !added){
-               ListHeight = ListHeight - 48;
-           }
-           $(".lines").css("min-height" , ListHeight+"px");
-       });
+            scope.$watch('tasks', function(ov , nv){
+                var ListHeight = $(".list").height();
+                scope.$emit('list-loaded', ListHeight);            
+            });
+            scope.$watch('criteria', function(ov , nv){
+                var ListHeight = $(".list").height(); 
+                scope.$emit('search-updated', ListHeight);     
+            });
+
+           $rootScope.$on("list-updated", function(event,added){ //check $rootscope for change
+               var ListHeight = $(".list").height();
+
+               if(added !== undefined && added){
+                   ListHeight = ListHeight + 48;
+               }else if(added !== undefined &&  !added){
+                   ListHeight = ListHeight - 48;
+               }
+               $(".lines").css("min-height" , ListHeight+"px");
+           });
       }      
   };
 }]);
@@ -63,15 +63,15 @@ plannerApp.directive("listLoadComplete" ,["$rootScope", function($rootScope) {
 plannerApp.service("taskService" , ["CacheFactory","$http","$q" , function (CacheFactory,$http, $q) {   
     var ListArray = { "userList" :["testing"]} ;
     var _getCachedTaskList = function(){
-     var taskCache ;
-        if (!CacheFactory.get('taskCache')) {
+    var taskCache ;
+       if (!CacheFactory.get('taskCache')) {
           // or CacheFactory('bookCache', { ... });
             taskCache =  CacheFactory.createCache('taskCache', {
                 deleteOnExpire: 'aggressive',
                 recycleFreq: 60000
               });
         }
-
+        
         taskCache = CacheFactory.get('taskCache');
         return taskCache;
     };
@@ -83,12 +83,7 @@ plannerApp.service("taskService" , ["CacheFactory","$http","$q" , function (Cach
         });  
     };
     
-    var _updateListCache = function(ListDescription){
-      /*  var _listCache = _getCachedTaskList();
-        var array = ListArray.userList;
-        array.push(ListDescription);
-        ListArray.userList = array;
-        _listCache.put("taskList" , ListArray);*/
+    var _updateListCache = function(ListDescription){    
         var json = {"value": ListDescription};
          return  $http.post('/api/updateItems', json)
         .success(function(data) {
@@ -96,13 +91,7 @@ plannerApp.service("taskService" , ["CacheFactory","$http","$q" , function (Cach
         }); 
     };
     
-   var _deleteTaskFromCache = function(value){
-      /*  var _listCache = _getCachedTaskList();
-        var array = ListArray.userList;
-        array.splice(index ,1);
-        ListArray.userList = array;
-        _listCache.put("taskList" , ListArray);*/
-       
+   var _deleteTaskFromCache = function(value){     
        var json = {"value": value};
          return  $http.post('/api/deleteItem', json)
         .success(function(data) {
@@ -111,16 +100,10 @@ plannerApp.service("taskService" , ["CacheFactory","$http","$q" , function (Cach
    }
 
    var _updateTaskListAtIndex = function(index , value ){
-     /*   var _listCache = _getCachedTaskList();
-        var array = ListArray.userList;
-        array[index] = value;
-        ListArray.userList = array;
-        _listCache.put("taskList" , ListArray);*/
        return  $http.post('/api/updateItems', value)
         .success(function(data) {
             ListArray = data[0].userList;
         }); 
-       
    };
     
     return {
@@ -134,15 +117,15 @@ plannerApp.service("taskService" , ["CacheFactory","$http","$q" , function (Cach
 
 plannerApp.controller("taskController" , ["$scope" , "$rootScope", "taskService" , function( $scope , $rootScope , taskService){    
     $scope.addTask = function(descriptionValue){
-      if(descriptionValue === undefined || descriptionValue == ""){
-          return false;
-      }else{        
-          taskService.updateTaskListCache($scope.description).then(function(data) {
-            $scope.tasks = data.data[0];
-          });
-          $scope.description = "";
-          $scope.$parent.$emit("list-updated", true);    //$scope.$parent is equivalent to $rootscope[$scope.emit is not catched for sibling scopes as in this case ]
-      }
+          if(descriptionValue === undefined || descriptionValue == ""){
+              return false;
+          }else{        
+              taskService.updateTaskListCache($scope.description).then(function(data) {
+                $scope.tasks = data.data[0];
+              });
+              $scope.description = "";
+              $scope.$parent.$emit("list-updated", true);    //$scope.$parent is equivalent to $rootscope[$scope.emit is not catched for sibling scopes as in this case ]
+          }
     };   
   
   
@@ -175,15 +158,15 @@ plannerApp.controller("taskController" , ["$scope" , "$rootScope", "taskService"
     
     
     $scope.updateTask = function(index){      
-      taskService.updateTaskListAtIndex(index , $scope.taskEditValue);
-      $scope.$parent.$emit("list-updated", true);     //$scope.$parent is equivalent to $rootscope[$scope.emit is not catched for sibling scopes as in this case ]
+        taskService.updateTaskListAtIndex(index , $scope.taskEditValue);
+        $scope.$parent.$emit("list-updated", true);     //$scope.$parent is equivalent to $rootscope[$scope.emit is not catched for sibling scopes as in this case ]
     };
-     $scope.deleteTask = function(value){
-         
-     taskService.deleteTaskFromCache(value).then(function(data) {
-        $scope.tasks = data.data[0];
-      });    
-       $scope.$parent.$emit("list-updated" ,false);    //$scope.$parent is equivalent to $rootscope[$scope.emit is not catched for sibling scopes as in this case ]
+    
+    $scope.deleteTask = function(value){         
+        taskService.deleteTaskFromCache(value).then(function(data) {
+            $scope.tasks = data.data[0];
+        });    
+        $scope.$parent.$emit("list-updated" ,false);    //$scope.$parent is equivalent to $rootscope[$scope.emit is not catched for sibling scopes as in this case ]
     };
     
     $scope.$on('list-loaded', function(event, height){
